@@ -81,6 +81,11 @@ zabbix_export:
           tags:
             - tag: Application
               value: System
+          triggers:
+            - uuid: be946dd4eac7466cba803965118bb8c1
+              expression: 'min(/Sangfor HCI/hci.aCloudHostCpuUseRate,5m)>{$SANGFOR.CPU.UTILIZATION.CRITICAL}'
+              name: 'High CPU utilization (over {$SANGFOR.CPU.UTILIZATION.CRITICAL}% for 5m)'
+              priority: HIGH
         - uuid: 58777a2a995840cebcc14d2756bcab11
           name: 'Disk usage'
           type: SNMP_AGENT
@@ -88,6 +93,7 @@ zabbix_export:
           key: hci.aCloudHostDiskUseRate
           value_type: FLOAT
           trends: '0'
+          status: DISABLED
           units: '%'
           preprocessing:
             - type: REGEX
@@ -108,6 +114,7 @@ zabbix_export:
           value_type: FLOAT
           trends: '0'
           units: '%'
+          description: 'Host memory usage'
           preprocessing:
             - type: REGEX
               parameters:
@@ -122,6 +129,24 @@ zabbix_export:
           tags:
             - tag: Application
               value: System
+          triggers:
+            - uuid: 3d5fe2563ece4826859bb8c7cf60f4d3
+              expression: 'avg(/Sangfor HCI/hci.aCloudHostMemoryUseRate,#5)>{$SANGFOR.MEMORY.UTILIZATION.CRITICAL}'
+              name: 'Memory utilization more than {{$SANGFOR.MEMORY.UTILIZATION.CRITICAL}:"{#SNMPVALUE}"}%)'
+              priority: HIGH
+              tags:
+                - tag: Application
+                  value: System
+            - uuid: 7056a423107f4393bde3422aaa49a444
+              expression: 'avg(/Sangfor HCI/hci.aCloudHostMemoryUseRate,#5)>{$SANGFOR.MEMORY.UTILIZATION.WARN}'
+              name: 'Memory utilization more than {{$SANGFOR.MEMORY.UTILIZATION.WARN}:"{#SNMPVALUE}"}%)'
+              priority: WARNING
+              dependencies:
+                - name: 'Memory utilization more than {{$SANGFOR.MEMORY.UTILIZATION.CRITICAL}:"{#SNMPVALUE}"}%)'
+                  expression: 'avg(/Sangfor HCI/hci.aCloudHostMemoryUseRate,#5)>{$SANGFOR.MEMORY.UTILIZATION.CRITICAL}'
+              tags:
+                - tag: Application
+                  value: System
         - uuid: 0a0925256e694dd1bbaabb897b273806
           name: 'HCI version'
           type: SNMP_AGENT
@@ -450,16 +475,18 @@ zabbix_export:
               trigger_prototypes:
                 - uuid: 6e1fdfec8bb04ad5a6e402797deb2644
                   expression: 'last(/Sangfor HCI/snmp.discovery.hci.ssd.life.[{#SNMPINDEX}])< {$SANGFOR.SSD.LIFETIME.CRITICAL}'
-                  name: 'SSD Life (SN {#SNMPINDEX}) < {$SANGFOR.SSD.LIFETIME.CRITICAL}'
+                  name: 'SSD Life {#SNMPINDEX} < {$SANGFOR.SSD.LIFETIME.CRITICAL}'
                   priority: HIGH
                 - uuid: 71283350256548f58311a80d4aeaf441
                   expression: 'last(/Sangfor HCI/snmp.discovery.hci.ssd.life.[{#SNMPINDEX}])< {$SANGFOR.SSD.LIFETIME.WARN}'
-                  name: 'SSD Life (SN {#SNMPINDEX}) < {$SANGFOR.SSD.LIFETIME.WARN}'
+                  name: 'SSD Life {#SNMPINDEX} < {$SANGFOR.SSD.LIFETIME.WARN}'
                   priority: WARNING
                   dependencies:
-                    - name: 'SSD Life (SN {#SNMPINDEX}) < {$SANGFOR.SSD.LIFETIME.CRITICAL}'
+                    - name: 'SSD Life {#SNMPINDEX} < {$SANGFOR.SSD.LIFETIME.CRITICAL}'
                       expression: 'last(/Sangfor HCI/snmp.discovery.hci.ssd.life.[{#SNMPINDEX}])< {$SANGFOR.SSD.LIFETIME.CRITICAL}'
       macros:
+        - macro: '{$SANGFOR.CPU.UTILIZATION.CRITICAL}'
+          value: '4'
         - macro: '{$SANGFOR.DATASTORE.FREE.CRITICAL}'
           value: '95'
         - macro: '{$SANGFOR.DATASTORE.FREE.WARN}'
@@ -467,6 +494,10 @@ zabbix_export:
         - macro: '{$SANGFOR.FS.FREE.CRITICAL}'
           value: '95'
         - macro: '{$SANGFOR.FS.FREE.WARN}'
+          value: '80'
+        - macro: '{$SANGFOR.MEMORY.UTILIZATION.CRITICAL}'
+          value: '90'
+        - macro: '{$SANGFOR.MEMORY.UTILIZATION.WARN}'
           value: '80'
         - macro: '{$SANGFOR.SSD.LIFETIME.CRITICAL}'
           value: '50'
