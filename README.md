@@ -1,5 +1,7 @@
 Sangfor Hyperconverged Infrastructure
 
+Fill in the {$SNMP_COMMUNITY} field
+
 Discovery: 
   CPU,
   Datastore,
