@@ -1,3 +1,5 @@
+Sangfor Hyperconverged Infrastructure
+
 Discovery: 
   CPU,
   Datastore,
